@@ -21,7 +21,7 @@ enum TrafficLightPosition {
     case east
     case north
 
-    /// Determines which light turns green next.
+    // Determines which light turns green next.
     var next : TrafficLightPosition {
         return self == .east ? .north : .east
     }
@@ -191,6 +191,7 @@ class TrafficLightsCoordinator : Coordinator {
     }
 
     func resume() {
+        pause()
         _timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {[weak self] timer in
             self?.tick()
         }
@@ -216,15 +217,12 @@ class TrafficLightsCoordinator : Coordinator {
         tick(firstTime: true)
     }
 
-    /// The actual business logic is found here for the application.
     func tick(firstTime : Bool = false) {
-        //increment the timer
         if !firstTime {
             self._store.dispatch(action: TrafficLightIncrementTimeAction(cycle:(self._config.cycleDuration)))
         }
         let state = self._store.state
         if let activePos = state.activePosition {
-            // There is a non-red light.
 
             if state.elapsedTime == 0 && !firstTime  {
                 // dispatch action to turn the next light green
