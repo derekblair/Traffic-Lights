@@ -12,6 +12,13 @@ class TrafficLightViewController: UIViewController, TrafficLightPresenter {
     @IBOutlet weak var northLight : UIImageView?
     @IBOutlet weak var eastLight : UIImageView?
     @IBOutlet weak var elapsedTime : UILabel?
+    @IBAction func timeTogglePressed(sender:UISwitch) {
+        toggleTime?()
+    }
+
+    // MARK: TrafficLightPresenter
+
+    var toggleTime : (()->())?
 
     func present(state:AppState) {
         northLight?.image = state.state[.north]?.image

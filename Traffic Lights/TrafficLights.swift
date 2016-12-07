@@ -41,11 +41,17 @@ extension AppState {
 
 protocol TrafficLightPresenter : class {
     func present(state:AppState)
+    var toggleTime : (()->())? {get set}
 }
 
 protocol Action {}
 protocol Reducer {
     func handleAction(action: Action, state: AppState) -> AppState
+}
+
+protocol Coordinator {
+    // Must be always called first.
+    func start()
 }
 
 
@@ -81,6 +87,11 @@ struct Store {
         guard let presenter = presenter else { return }
         listeners.add(presenter)
         presenter.present(state: self.state)
+    }
+
+    func unsubscribe(presenter:TrafficLightPresenter?) {
+        guard let presenter = presenter else { return }
+        listeners.remove(presenter)
     }
 
     private func notifyListeners() {
@@ -147,16 +158,14 @@ struct TrafficLightsCoordinatorConfig {
 }
 
 
-class TrafficLightsCoordinator {
+class TrafficLightsCoordinator : Coordinator {
 
     private let _config : TrafficLightsCoordinatorConfig
     private var _timer : Timer?
 
 
-    var didTick : ((_ time:UInt64)->())?
-
     deinit {
-        _timer?.invalidate()
+        pause()
     }
 
     init?(config:TrafficLightsCoordinatorConfig) {
@@ -176,11 +185,34 @@ class TrafficLightsCoordinator {
         _store = Store(state:TrafficLightsState(config:config),reducer:TrafficLightReducer())
     }
 
-    func start(initialPresenter:TrafficLightPresenter?) {
-        _store.subscribe(presenter: initialPresenter)
+    func pause() {
+        _timer?.invalidate()
+        _timer = nil
+    }
+
+    func resume() {
         _timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {[weak self] timer in
             self?.tick()
         }
+    }
+
+    func unsubscribe(presenter:TrafficLightPresenter?) {
+        _store.unsubscribe(presenter: presenter)
+    }
+
+    func subscribe(presenter:TrafficLightPresenter?) {
+        _store.subscribe(presenter: presenter)
+        presenter?.toggleTime = {[weak self] _ in
+            if self?._timer == nil {
+                self?.resume()
+            } else {
+                self?.pause()
+            }
+        }
+    }
+
+    func start() {
+        resume()
         tick(firstTime: true)
     }
 
@@ -202,7 +234,6 @@ class TrafficLightsCoordinator {
                 self._store.dispatch(action: TrafficLightChangeColorAction(position:activePos,newColorState:.amber))
             }
         }
-        didTick?(_store.state.elapsedTime)
     }
 
     private var _store : Store

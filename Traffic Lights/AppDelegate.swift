@@ -23,7 +23,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
    
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        coordinator?.start(initialPresenter: window?.rootViewController as? TrafficLightPresenter)
+        coordinator?.start()
+        coordinator?.subscribe(presenter: window?.rootViewController as? TrafficLightPresenter)
         return true
     }
 }

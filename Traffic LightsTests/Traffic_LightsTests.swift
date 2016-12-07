@@ -11,6 +11,7 @@ class StubPresenter : TrafficLightPresenter {
     func present(state:AppState) {
         lastState = state
     }
+    var toggleTime : (()->())?
 }
 
 class Traffic_LightsTests: XCTestCase {
@@ -24,31 +25,31 @@ class Traffic_LightsTests: XCTestCase {
 
     // MARK: - Initial State Tests
 
-    // Is the initial state set correctly based on the config object?
     func testInitialStateApplication() {
         let config = TrafficLightsCoordinatorConfig(amberDuration: 5, cycleDuration: 30, initialState: [.east:.green,.north:.red], initialElapsedTime: 4)
         let coordinator = TrafficLightsCoordinator(config:config)
-        coordinator?.start(initialPresenter: stubPresenter)
+        coordinator?.start()
+        coordinator?.subscribe(presenter: stubPresenter)
         XCTAssert(stubPresenter.lastState?.state[.east] == .green && stubPresenter.lastState?.state[.north] == .red && stubPresenter.lastState?.elapsedTime == 4)
     }
 
      // MARK: - State Transition Tests
 
-    // Does the system turn a green light amber at the correct time?
     func testBeginAmberTransition() {
         let config = TrafficLightsCoordinatorConfig(amberDuration: 5, cycleDuration: 30, initialState: [.east:.red,.north:.green], initialElapsedTime: 23)
         let coordinator = TrafficLightsCoordinator(config:config)
-        coordinator?.start(initialPresenter: stubPresenter)
+        coordinator?.start()
+        coordinator?.subscribe(presenter: stubPresenter)
         coordinator?.tick()
         coordinator?.tick()
         XCTAssert(stubPresenter.lastState?.state[.north] == .amber && stubPresenter.lastState?.state[.east] == .red && stubPresenter.lastState?.elapsedTime == 25)
     }
 
-    // Does the system turn a green light on and an amber light to red at the correct time. 
     func testEndAmberTransition() {
         let config = TrafficLightsCoordinatorConfig(amberDuration: 5, cycleDuration: 30, initialState: [.east:.amber,.north:.red], initialElapsedTime: 28)
         let coordinator = TrafficLightsCoordinator(config:config)
-        coordinator?.start(initialPresenter: stubPresenter)
+        coordinator?.start()
+        coordinator?.subscribe(presenter: stubPresenter)
         coordinator?.tick()
         coordinator?.tick()
         XCTAssert(stubPresenter.lastState?.state[.north] == .green && stubPresenter.lastState?.state[.east] == .red && stubPresenter.lastState?.elapsedTime == 0)
