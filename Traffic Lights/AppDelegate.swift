@@ -11,12 +11,12 @@ import UIKit
 private let UnitTestingEnvVar = "TrafficTesting"
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
 
-    lazy var coordinator : TrafficLightsCoordinator? = {
+    lazy var coordinator: TrafficLightsCoordinator? = {
         let env = ProcessInfo.processInfo.environment
         return env[UnitTestingEnvVar] == nil ? TrafficLightsCoordinator(config:TrafficLightsCoordinatorConfig(launchEnv:env)) : nil
     }()
@@ -29,9 +29,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
-
 extension TrafficLightsCoordinatorConfig {
-    init(launchEnv:[String:String]) {
+    init(launchEnv: [String:String]) {
         self.amberDuration = 5
         self.cycleDuration  = 30
         self.initialElapsedTime = 0

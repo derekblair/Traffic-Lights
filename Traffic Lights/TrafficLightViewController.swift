@@ -8,19 +8,20 @@
 
 import UIKit
 
-class TrafficLightViewController: UIViewController, TrafficLightPresenter {
-    @IBOutlet weak var northLight : UIImageView?
-    @IBOutlet weak var eastLight : UIImageView?
-    @IBOutlet weak var elapsedTime : UILabel?
-    @IBAction func timeTogglePressed(sender:UISwitch) {
+final class TrafficLightViewController: UIViewController, TrafficLightPresenter {
+
+    @IBOutlet weak var northLight: UIImageView?
+    @IBOutlet weak var eastLight: UIImageView?
+    @IBOutlet weak var elapsedTime: UILabel?
+    @IBAction func timeTogglePressed(sender: UISwitch) {
         toggleTime?()
     }
 
     // MARK: TrafficLightPresenter
 
-    var toggleTime : (()->())?
+    var toggleTime: (()->())?
 
-    func present(state:AppState) {
+    func present(state: AppState) {
         northLight?.image = state.state[.north]?.image
         eastLight?.image = state.state[.east]?.image
         elapsedTime?.text = "\(state.elapsedTime) s"
@@ -28,7 +29,7 @@ class TrafficLightViewController: UIViewController, TrafficLightPresenter {
 }
 
 private extension TrafficLightState {
-    var image : UIImage? {
+    var image: UIImage? {
         return UIImage(named: self.rawValue)
     }
 }

@@ -6,12 +6,12 @@
 import XCTest
 @testable import Traffic_Lights
 
-class StubPresenter : TrafficLightPresenter {
-    var lastState : AppState?
+class StubPresenter: TrafficLightPresenter {
+    var lastState: AppState?
     func present(state:AppState) {
         lastState = state
     }
-    var toggleTime : (()->())?
+    var toggleTime: (()->())?
 }
 
 class Traffic_LightsTests: XCTestCase {

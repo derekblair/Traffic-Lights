@@ -11,7 +11,7 @@ import Foundation
 
 // MARK: Groundwork Types/Protocols
 
-enum TrafficLightState : String {
+enum TrafficLightState: String {
     case green
     case amber
     case red
@@ -22,26 +22,26 @@ enum TrafficLightPosition {
     case north
 
     // Determines which light turns green next.
-    var next : TrafficLightPosition {
+    var next: TrafficLightPosition {
         return self == .east ? .north : .east
     }
 }
 
 protocol AppState  {
-    var state : [TrafficLightPosition:TrafficLightState] {get set}
-    var elapsedTime : UInt64 {get set}
+    var state: [TrafficLightPosition:TrafficLightState] {get set}
+    var elapsedTime: UInt64 {get set}
 }
 
 
 extension AppState {
-    var activePosition : TrafficLightPosition? {
+    var activePosition: TrafficLightPosition? {
         return state.keys.filter {self.state[$0] != .red}.first
     }
 }
 
-protocol TrafficLightPresenter : class {
-    func present(state:AppState)
-    var toggleTime : (()->())? {get set}
+protocol TrafficLightPresenter: class {
+    func present(state: AppState)
+    var toggleTime: (()->())? {get set}
 }
 
 protocol Action {}
@@ -57,9 +57,9 @@ protocol Coordinator {
 
 // MARK: Store/AppState
 
-struct TrafficLightsState : AppState {
-    var state : [TrafficLightPosition:TrafficLightState]
-    var elapsedTime : UInt64
+struct TrafficLightsState: AppState {
+    var state: [TrafficLightPosition:TrafficLightState]
+    var elapsedTime: UInt64
 
     init(config:TrafficLightsCoordinatorConfig) {
         state = config.initialState
@@ -68,28 +68,28 @@ struct TrafficLightsState : AppState {
 }
 
 struct Store {
-    var state : AppState {
+    var state: AppState {
         didSet {
             notifyListeners()
         }
     }
-    private let _reducer : Reducer
+    private let _reducer: Reducer
 
 
-    init(state:AppState,reducer:Reducer) {
+    init(state: AppState,reducer: Reducer) {
         self.state = state
         _reducer = reducer
     }
 
 
     private var listeners = NSHashTable<AnyObject>.weakObjects()
-    func subscribe(presenter:TrafficLightPresenter?) {
+    func subscribe(presenter: TrafficLightPresenter?) {
         guard let presenter = presenter else { return }
         listeners.add(presenter)
         presenter.present(state: self.state)
     }
 
-    func unsubscribe(presenter:TrafficLightPresenter?) {
+    func unsubscribe(presenter: TrafficLightPresenter?) {
         guard let presenter = presenter else { return }
         listeners.remove(presenter)
     }
@@ -99,7 +99,7 @@ struct Store {
     }
 
 
-    mutating func dispatch(action:Action) {
+    mutating func dispatch(action: Action) {
         state = _reducer.handleAction(action: action, state: state)
     }
 
@@ -108,7 +108,7 @@ struct Store {
 
 // MARK: Reducer
 
-struct TrafficLightReducer : Reducer {
+struct TrafficLightReducer: Reducer {
     func handleAction(action: Action, state: AppState) -> AppState {
         var result = state
         switch action {
@@ -133,42 +133,42 @@ struct TrafficLightReducer : Reducer {
 // MARK: Actions
 
 
-struct TrafficLightChangeColorAction : Action {
-    var position : TrafficLightPosition
-    var newColorState : TrafficLightState
+struct TrafficLightChangeColorAction: Action {
+    var position: TrafficLightPosition
+    var newColorState: TrafficLightState
 }
 
-struct TrafficLightIncrementTimeAction : Action {
-    var cycle : UInt64
+struct TrafficLightIncrementTimeAction: Action {
+    var cycle: UInt64
 }
 
 // MARK: TrafficLightsCoordinator
 
 struct TrafficLightsCoordinatorConfig {
-    var amberDuration : UInt64
-    var cycleDuration : UInt64
+    var amberDuration: UInt64
+    var cycleDuration: UInt64
 
-    var initialState : [TrafficLightPosition:TrafficLightState]
-    var initialElapsedTime : UInt64
+    var initialState: [TrafficLightPosition:TrafficLightState]
+    var initialElapsedTime: UInt64
 
 
-    var areMultipleLightsNonRed : Bool {
+    var areMultipleLightsNonRed: Bool {
         return Array(initialState.keys).filter {self.initialState[$0] != .red}.count > 1
     }
 }
 
 
-class TrafficLightsCoordinator : Coordinator {
+class TrafficLightsCoordinator: Coordinator {
 
-    private let _config : TrafficLightsCoordinatorConfig
-    private var _timer : Timer?
+    private let _config: TrafficLightsCoordinatorConfig
+    private var _timer: Timer?
 
 
     deinit {
         pause()
     }
 
-    init?(config:TrafficLightsCoordinatorConfig) {
+    init?(config: TrafficLightsCoordinatorConfig) {
         guard config.cycleDuration > 0 else {
             debugPrint("Must provide a non-zero cycle length.")
             return nil
@@ -197,11 +197,11 @@ class TrafficLightsCoordinator : Coordinator {
         }
     }
 
-    func unsubscribe(presenter:TrafficLightPresenter?) {
+    func unsubscribe(presenter: TrafficLightPresenter?) {
         _store.unsubscribe(presenter: presenter)
     }
 
-    func subscribe(presenter:TrafficLightPresenter?) {
+    func subscribe(presenter: TrafficLightPresenter?) {
         _store.subscribe(presenter: presenter)
         presenter?.toggleTime = {[weak self] _ in
             if self?._timer == nil {
@@ -217,7 +217,7 @@ class TrafficLightsCoordinator : Coordinator {
         tick(firstTime: true)
     }
 
-    func tick(firstTime : Bool = false) {
+    func tick(firstTime: Bool = false) {
         if !firstTime {
             self._store.dispatch(action: TrafficLightIncrementTimeAction(cycle:(self._config.cycleDuration)))
         }
@@ -234,6 +234,6 @@ class TrafficLightsCoordinator : Coordinator {
         }
     }
 
-    private var _store : Store
+    private var _store: Store
 }
 

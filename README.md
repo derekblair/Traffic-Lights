@@ -1,4 +1,4 @@
-#Traffic Lights
+# Traffic Lights
 
 A simple iOS application demonstrating a system of traffic lights.
 
